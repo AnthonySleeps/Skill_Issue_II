@@ -159,13 +159,15 @@ class PlayerSprite {
         return false; // Continue falling if no collision
     }
     
-    public void falling(List<Rectangle> obstacles, int height) {
+    public boolean falling(List<Rectangle> obstacles, int height) {
         Rectangle hitbox = new Rectangle(this.x, this.y, 50, 50); // Create a hitbox for the player
         
         // Move the player down as long as it is not touching anything
         if (!isTouchingGround(hitbox, obstacles)) {
-            this.y += height; // Move player down by 1 pixel per frame
+            this.y += height;
+            return true;// Move player down by 1 pixel per frame
         }
+        return false;
     }
 }
 
@@ -182,11 +184,13 @@ class SpriteScreen extends JPanel implements KeyListener {
     private PlayerSprite player;
     private List<Rectangle> obstacles = new ArrayList<>();
     private Timer fallTimer;
+    private BufferedImage backgroundImage;
+    private BufferedImage rockImage;
 
     public SpriteScreen() {
         setPreferredSize(new Dimension(800, 600));
         setBackground(Color.BLACK);
-
+       // setFocusable(true);
         // Initialize the player sprite
         player = new PlayerSprite(400, 550);
         frames = player.getImages();
@@ -194,10 +198,32 @@ class SpriteScreen extends JPanel implements KeyListener {
         //ground
         obstacles.add(new Rectangle(0,600,800,50));
         
-        fall(3);
-
+        //obstacle test
+        obstacles.add(new Rectangle(0,480,150,25));
+        
+        fall(5);
+        int jumpSpeed = 3;
+        loadBackgroundImage();
+        loadRockImage();
+        
     }
         
+    private void loadBackgroundImage() {
+        try {
+            backgroundImage = ImageIO.read(new File("src/BackgroundOne/BackgroundOne-1.png")); // Load image
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    private void loadRockImage() {
+        try {
+            rockImage = ImageIO.read(new File("src/Rocks/RockOne/RockOne-1.png")); // Load your obstacle image
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    
     
     public void fall(int dir) {
         fallTimer = new Timer(16, e -> {
@@ -206,10 +232,27 @@ class SpriteScreen extends JPanel implements KeyListener {
         });
         fallTimer.start(); // Start the falling timer
     }
+    
+    public void jump(int dir) {
+        Timer jumpTimer = new Timer(16, e -> {
+            player.falling(obstacles, -dir); // Make the player fall
+            repaint(); // Redraw the screen
+        });
+        
+        jumpTimer.setRepeats(false);
+        fallTimer.start(); // Start the falling timer
+    }
+    
+    
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
 
+        
+        if (backgroundImage != null) {
+            g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this); // Stretch image to fit the panel
+        }
+        
         // Draw the current frame of the player
         if (frames != null && frames.length > 0) {
             g.drawImage(frames[currentFrame], player.getX(), player.getY(), null); // Draw player sprite
@@ -218,7 +261,14 @@ class SpriteScreen extends JPanel implements KeyListener {
                 g.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
             }
         }
+        
+        for (Rectangle obstacle : obstacles) {
+            if (rockImage != null) {
+                g.drawImage(rockImage, obstacle.x, obstacle.y, obstacle.width, obstacle.height, this); // Draw obstacle image
+            }
+        }
     }
+    
 
     @Override
     public void keyTyped(KeyEvent e) {
@@ -240,10 +290,13 @@ class SpriteScreen extends JPanel implements KeyListener {
                 
                 break;
             case KeyEvent.VK_UP: // Up arrow
+            	/*if (player.falling(obstacles, 5) == false) {
+            		player.setSpriteJump();
+            		jump(5);
+            	}*/
             	player.setSpriteJump();
-                player.move(0,-113);
-                
-                
+            	player.move(0, -115);
+            	
                 break;
 
         }
