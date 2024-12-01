@@ -15,6 +15,7 @@ import javax.swing.Timer;
 
 
 
+
 // Sprite class to represent a single sprite
 class Sprite{
     private int x, y;
@@ -92,6 +93,10 @@ class PlayerSprite {
         images = loadFrames("src/IdleMain");
     }
     
+    
+    public void setY(int y) {
+    	this.y = y;
+    }
     public void setSpriteRight () {
     	images = loadFrames("src/RightMain");
     	
@@ -199,7 +204,17 @@ class SpriteScreen extends JPanel implements KeyListener {
         obstacles.add(new Rectangle(0,600,800,50));
         
         //obstacle test
+        
         obstacles.add(new Rectangle(0,480,150,25));
+        obstacles.add(new Rectangle (220,440,150,25));
+        obstacles.add(new Rectangle(340,480,150,25));
+        obstacles.add(new Rectangle(400,420,150,25));
+        obstacles.add(new Rectangle (320,360,150,25));
+        obstacles.add(new Rectangle (200,300,150, 25));
+        obstacles.add(new Rectangle (160,220,150,25));
+        obstacles.add(new Rectangle (240,100 ,150,25));
+        
+        
         
         fall(5);
         int jumpSpeed = 3;
@@ -253,20 +268,69 @@ class SpriteScreen extends JPanel implements KeyListener {
             g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this); // Stretch image to fit the panel
         }
         
+        if (player.getY() <= 0) {
+        	try {
+        		
+				backgroundImage = ImageIO.read(new File("src/BackgroundTwo/BackgroundTwo-1.png"));
+				rockImage = ImageIO.read(new File ("src/Tree/TreeTwo/TreeTwo-1.png"));
+				g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
+				player.setY(550);
+				
+				obstacles.set(1, new Rectangle(150,430,150,25));
+				obstacles.set(2, new Rectangle(490,320,150,25));
+				obstacles.set(3, new Rectangle(480,110,150,25));
+				obstacles.set(4, new Rectangle(240,30,150,25));
+				obstacles.set(5, new Rectangle(250,240,150,25));
+				obstacles.set(6, new Rectangle(160,70,150,25));
+				
+				
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+        }
+        
+        
         // Draw the current frame of the player
         if (frames != null && frames.length > 0) {
             g.drawImage(frames[currentFrame], player.getX(), player.getY(), null); // Draw player sprite
-            g.setColor(Color.GREEN); 
+            
+            Graphics2D g2d = (Graphics2D) g;
+
+            // Draw background image if applicable
+            if (backgroundImage != null) {
+                g2d.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
+            }
+
+            // Set transparency (alpha value)
+            float alpha = 0f; // 50% transparent
+            g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
+
+            // Draw a transparent rectangle
+            g2d.setColor(Color.GREEN); // Rectangle color
+            
+            
             for (Rectangle obstacle : obstacles) {
                 g.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
             }
+            
+            g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
+            
+            if (frames != null && frames.length > 0) {
+            g2d.drawImage(frames[currentFrame], player.getX(), player.getY(), null);
         }
+        }
+        
+        
         
         for (Rectangle obstacle : obstacles) {
             if (rockImage != null) {
                 g.drawImage(rockImage, obstacle.x, obstacle.y, obstacle.width, obstacle.height, this); // Draw obstacle image
             }
         }
+        
+
+        
     }
     
 
@@ -295,7 +359,7 @@ class SpriteScreen extends JPanel implements KeyListener {
             		jump(5);
             	}*/
             	player.setSpriteJump();
-            	player.move(0, -115);
+            	player.move(0, -150);
             	
                 break;
 
@@ -321,7 +385,11 @@ class SpriteScreen extends JPanel implements KeyListener {
     }
     frames = player.getImages();
     repaint();
+    
     }
+    
+    
+    
 
     public static void main(String[] args) {
         JFrame frame = new JFrame("Sprite Screen Example");
