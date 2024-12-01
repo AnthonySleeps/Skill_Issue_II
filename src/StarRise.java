@@ -5,8 +5,12 @@ import java.util.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import javax.swing.Timer;
 
@@ -109,11 +113,28 @@ class MovingSprite {
     private int x, y;
     private BufferedImage[] images;
 
-
-    public MovingSprite(int x, int y, BufferedImage[] image) {
+    public MovingSprite(int x, int y, String folderPath) {
         this.x = x;
         this.y = y;
-        this.images = images;
+        this.images = loadFrames(folderPath);
+    }
+
+    private BufferedImage[] loadFrames(String folderPath) {
+        File folder = new File(folderPath);
+        File[] files = folder.listFiles((dir, name) -> name.endsWith(".png"));
+        if (files == null || files.length == 0) {
+            throw new RuntimeException("No PNG files found in the specified folder: " + folderPath);
+        }
+        BufferedImage[] loadedFrames = new BufferedImage[files.length];
+        try {
+            for (int i = 0; i < files.length; i++) {
+                loadedFrames[i] = ImageIO.read(files[i]);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+        return loadedFrames;
     }
 
     public int getX() { return x; }
@@ -123,48 +144,32 @@ class MovingSprite {
     public void move(int dx, int dy) {
         this.x += dx;
         this.y += dy;
-    }
-}
+    	}
+	}
 
 class SpriteScreen extends JPanel {
+    private BufferedImage[] frames; // Array to hold the frames
+    private int currentFrame = 0; // Current frame index
+    private int x = 100, y = 100; // Sprite position
 
-    private List<Sprite> sprites = new ArrayList<>();
-  
-    
     public SpriteScreen() {
-        // Set up the JPanel
-        setPreferredSize(new Dimension(800, 600)); // Set screen size
+        setPreferredSize(new Dimension(800, 600));
         setBackground(Color.BLACK);
-        //sprites.add (new Sprite (xpos, y pos, createSpriteMethod(Parameters)))
-        sprites.add(new Sprite(100, 100, createDummySprite(Color.RED)));
-        sprites.add(new Sprite(300, 200, createDummySprite(Color.GREEN)));
-    }
-
-    // Method to create a dummy sprite (a simple rectangle image)
-    private BufferedImage createDummySprite(Color color) {
-        BufferedImage sprite = new BufferedImage(50, 50, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g = sprite.createGraphics();
-        g.setColor(color);
-        g.fillRect(0, 0, 50, 50);
-        g.dispose();
-        return sprite;
-    }
-    
-    /*private BufferedImage createPlayerSprite() {
-    	BufferedImage sprite = new BufferedImage()
-    	return sprite;
-    }*/
-
-    // Add a sprite to the list
-    public void addSprite(Sprite sprite) {
-        sprites.add(sprite);
+        //Level Complete Sprite
+        //MovingSprite animatedSprite = new MovingSprite(100, 100, "src/FinishMain");
+        //frames = animatedSprite.getImages();
+        
+        //Idle Sprite
+        MovingSprite animatedSprite2 = new MovingSprite(0,0, "src/IdleMain");
+        frames = animatedSprite2.getImages();
+        
     }
 
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        for (Sprite sprite : sprites) {
-            g.drawImage(sprite.getImage(), sprite.getX(), sprite.getY(), null);
+        if (frames != null && frames.length > 0) {
+            g.drawImage(frames[currentFrame], x, y, null); // Draw current frame
         }
     }
 
@@ -178,12 +183,12 @@ class SpriteScreen extends JPanel {
         frame.setVisible(true);
 
         // Example animation
-        new Timer(16, e -> {
-            screen.sprites.get(0).move(1, 0); // Move the first sprite to the right
+        new Timer(100, e -> { // Update frame every 100ms
+            screen.currentFrame = (screen.currentFrame + 1) % screen.frames.length;
             screen.repaint();
-        }).start(); 
-    
-}
+        }).start();
+    }
+
 
 
 
