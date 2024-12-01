@@ -76,6 +76,12 @@ class MovingSprite {
     	}
 	}
 
+
+
+
+
+
+
 class PlayerSprite {
     private int x, y;
     private BufferedImage[] images;
@@ -83,10 +89,25 @@ class PlayerSprite {
     public PlayerSprite(int x, int y) {
         this.x = x;
         this.y = y;
-        images = loadFrames();
+        images = loadFrames("src/IdleMain");
     }
     
+    public void setSpriteRight () {
+    	images = loadFrames("src/RightMain");
+    	
+    }
     
+    public void setSpriteLeft() {
+    	images = loadFrames("src/LeftMain");
+    }
+    
+    public void setSpriteJump() {
+    	images = loadFrames ("src/JumpMain");
+    }
+    
+    public void setSpriteStand() {
+    	images = loadFrames("src/IdleMain");
+    }
     //IMAGE SCALER
     public BufferedImage scaleImage(BufferedImage originalImage, int targetWidth, int targetHeight) {
         BufferedImage scaledImage = new BufferedImage(targetWidth, targetHeight, originalImage.getType());
@@ -101,11 +122,11 @@ class PlayerSprite {
     }
     
     //ARRAY OF SPRITE FRAMES PLAYER
-    private BufferedImage[] loadFrames() {
-        File folder = new File("src/IdleMain");
+    private BufferedImage[] loadFrames(String src) {
+        File folder = new File(src);
         File[] files = folder.listFiles((dir, name) -> name.endsWith(".png"));
         if (files == null || files.length == 0) {
-            throw new RuntimeException("No PNG files found in the specified folder: " + "src/IdleMain");
+            throw new RuntimeException("No PNG files found in the specified folder: " + src);
         }
         BufferedImage[] loadedFrames = new BufferedImage[files.length];
         try {
@@ -127,9 +148,6 @@ class PlayerSprite {
     public void move(int dx, int dy) {
         this.x += dx;
         this.y += dy;
-        
-        
-        
     }
     
     private boolean isTouchingGround(Rectangle hitbox, List<Rectangle> obstacles) {
@@ -176,7 +194,7 @@ class SpriteScreen extends JPanel implements KeyListener {
         //ground
         obstacles.add(new Rectangle(0,600,800,50));
         
-        fall(5);
+        fall(3);
 
     }
         
@@ -204,8 +222,6 @@ class SpriteScreen extends JPanel implements KeyListener {
 
     @Override
     public void keyTyped(KeyEvent e) {
- 
-             
     }
     
     
@@ -214,24 +230,45 @@ class SpriteScreen extends JPanel implements KeyListener {
         // Move the player based on the key pressed
         switch (e.getKeyCode()) {
             case KeyEvent.VK_LEFT: // Left arrow
+            	player.setSpriteLeft();
                 player.move(-10, 0);
                 
                 break;
             case KeyEvent.VK_RIGHT: // Right arrow
+            	player.setSpriteRight();
                 player.move(10, 0);
+                
                 break;
             case KeyEvent.VK_UP: // Up arrow
-                player.move(0,-75);
+            	player.setSpriteJump();
+                player.move(0,-113);
                 
                 
                 break;
 
         }
+        frames = player.getImages();
         repaint();
     }
 
     @Override
-    public void keyReleased(KeyEvent e) {}
+    public void keyReleased(KeyEvent e) {
+    	switch (e.getKeyCode()) {
+        case KeyEvent.VK_LEFT: // Left arrow
+        	player.setSpriteStand();        
+            break;
+        case KeyEvent.VK_RIGHT: // Right arrow
+        	player.setSpriteStand();
+
+            break;
+        case KeyEvent.VK_UP: // Up arrow
+        	player.setSpriteStand();
+            break;
+
+    }
+    frames = player.getImages();
+    repaint();
+    }
 
     public static void main(String[] args) {
         JFrame frame = new JFrame("Sprite Screen Example");
